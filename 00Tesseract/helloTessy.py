@@ -1,5 +1,8 @@
-from PIL import Image       #pip install pillow
-from pytesseract import *   #pip install pytesseract
+try:
+    import Image
+except ImportError:
+    from PIL import Image
+import pytesseract
 import configparser
 import os
 
