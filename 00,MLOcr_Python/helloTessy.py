@@ -1,12 +1,28 @@
 from PIL import Image       #pip install pillow
 from pytesseract import *   #pip install pytesseract
 import configparser
+import sys
 import os
+import csv
+import re
+from pymongo import MongoClient
 
 #Config Parser 초기화
 config = configparser.ConfigParser()
 #Config File 읽기
 config.read(os.path.dirname(os.path.realpath(__file__)) + os.sep + 'envs' + os.sep + 'property.ini')
+
+def initialDB():
+    #Mongodb 접속 초기화
+    client = MongoClient(config['System']['DatabaseUrl'])
+    #데이터 베이스 획득
+    db = client[config['System']['DatabaseName']]
+    #콜렉션(Documents) 획득 및 전역 선언
+    global nplKo
+    nplKo = db[config['System']['CollectionName']]
+    #DB 저장 데이터 리스트 변수 선언
+    global spamList
+    spamList = []
 
 #이미지 > 문자열 추출
 def ocrToStr(fullPath, outTxtPath, fileName, lang='eng'):#디폴트는 영어로 추출
@@ -33,11 +49,33 @@ def strToTxt(txtName, outText):
     with open(txtName + '.txt', 'w', encoding='utf-8') as f:
         f.write(outText)
 
+#텍스트파일 -> csv 파일 생성
+def txtToCsv(txtName, cateName, outTxtPath, outCsvPath):
+    #파일 사이즈가 0이면 패스(미추출 파일)
+    if os.path.getsize(os.path.join(outTxtPath, txtName)) != 0:
+        with open(os.path.join(outTxtPath, txtName), 'r', encoding='utf-8') as r:
+            with open(os.path.join(outCsvPath, config['FileName']['CsvFileName']), 'a', encoding='utf-8', newline='') as w:
+                writer = csv.writer(w, delimiter=',')
+                clText = cleanText(r.read())
+                writer.writerow([cateName, clText])
+                spamList.append({"category": cateName, "contents": clText})
+
+#텍스트 정제(전처리)
+def cleanText(readData):
+    #스팸 메시지에 포함되어 있는 특수 문자 제거
+    text = re.sub('[-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]', '', readData)
+    #양쪽(위,아래)줄바꿈 제거
+    text = text.strip('\n')
+    return text
+
 #메인 시작
 if __name__=="__main__":
-    
+    #MongoDB 관련 초기화
+    initialDB()
     #텍스트 파일 저장 경로
     outTxtPath = os.path.dirname(os.path.realpath(__file__))+config['Path']['OcrTxtPath']
+    #CSV 파일 저장 경로
+    outCsvPath = os.path.dirname(os.path.realpath(__file__))+config['Path']['TxtCsvPath']
 
     #OCR 추출 작업 메인
     for root, dirs, files in os.walk(os.path.dirname(os.path.realpath(__file__)) + config['Path']['OriImgPath']):
@@ -45,3 +83,14 @@ if __name__=="__main__":
             fullName = os.path.join(root, fname)
             #한글+영어 추출(kor,eng,kor+eng)
             ocrToStr(fullName, outTxtPath, fname, 'kor+eng')
+
+    #CSV 변환 작업 메인
+    for fname in os.listdir(os.path.dirname(os.path.realpath(__file__))+ config['Path']['OcrTxtPath']):
+        cateName = ''.join([i for i in fname if not i.isdigit()]).split('.')[0].strip()
+        txtToCsv(fname, cateName, outTxtPath, outCsvPath)
+
+    #추출 후 정제된 모든 데이터를 DB에 저장
+    nplKo.insert_many(spamList)
+    #작업 완료 메시지
+    print('+++ OCR Image >> Text >> CSV Convert Complete +++')
+
