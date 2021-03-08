@@ -14,12 +14,12 @@ config.read(os.path.dirname(os.path.realpath(__file__)) + os.sep + 'envs' + os.s
 
 def initialDB():
     #Mongodb 접속 초기화
-    client = MongoClient(config['System']['DatabaseUrl'])
+    #client = MongoClient(config['System']['DatabaseUrl'])
     #데이터 베이스 획득
-    db = client[config['System']['DatabaseName']]
+    #db = client[config['System']['DatabaseName']]
     #콜렉션(Documents) 획득 및 전역 선언
-    global nplKo
-    nplKo = db[config['System']['CollectionName']]
+    #global nplKo
+    #nplKo = db[config['System']['CollectionName']]
     #DB 저장 데이터 리스트 변수 선언
     global spamList
     spamList = []
@@ -34,7 +34,7 @@ def ocrToStr(fullPath, outTxtPath, fileName, lang='eng'):#디폴트는 영어로
     #preserve_interword_spaces : 단어 간격 옵션을 조절하면서 추출 정확도를 확인한다.
     #psm(페이지 세그먼트 모드 : 이미지 영역안에서 텍스트 추출 범위 모드)
     #psm 모드 : https://github.com/tesseract-ocr/tesseract/wiki/Command-Line-Usage
-    outText = image_to_string(img, lang=lang, config='--psm 1 -c preserve_interword_spaces=1')
+    outText = image_to_string(img, lang=lang, config='--psm 3 --oem 1 preserve_interword_spaces=1')
 
     print('+++ OCT Extract Result +++')
     print('Extract FileName ->>> : ', fileName, ' : <<<-')
@@ -82,7 +82,7 @@ if __name__=="__main__":
         for fname in files:
             fullName = os.path.join(root, fname)
             #한글+영어 추출(kor,eng,kor+eng)
-            ocrToStr(fullName, outTxtPath, fname, 'kor+eng')
+            ocrToStr(fullName, outTxtPath, fname, 'kor_lstm+eng_lstm')
 
     #CSV 변환 작업 메인
     for fname in os.listdir(os.path.dirname(os.path.realpath(__file__))+ config['Path']['OcrTxtPath']):
@@ -90,7 +90,7 @@ if __name__=="__main__":
         txtToCsv(fname, cateName, outTxtPath, outCsvPath)
 
     #추출 후 정제된 모든 데이터를 DB에 저장
-    nplKo.insert_many(spamList)
+    #nplKo.insert_many(spamList)
     #작업 완료 메시지
     print('+++ OCR Image >> Text >> CSV Convert Complete +++')
 

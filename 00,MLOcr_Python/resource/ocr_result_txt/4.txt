@@ -1,0 +1,78 @@
+C:#lsers>tesseract —help-extra
+Nett
+tesseract —help | —help-extra | ——help-psm | —-help-oem | —-version
+tesseract —list-langs [--tessdata-dir PATH]
+tesseract —print-parameters [options.,.] [configfile.,.]
+tesseract imagename| imagel ist [stdin outputbase|stdout [options...] [configfile...]
+
+Neale
+——tessdata-dir PATH Specify the location of tessdata path
+user-words PATH     Specify the location of user words file
+
+  
+
+user-patterns PATH Specify the location of user patterns file
+ae IR           Specify DPI for input image
+들릴 디라바        ee EET EC TEC ev)
+RRL에          Set value for config variables
+Multiple -c arguments are allowed
+==psm NUM             Specify page segmentation mode
+——oem NUM             Specify OCR Engine mode
+
+NOTE: These options must occur before any configfile
+
+Page segmentation modes
+
+Orientation and script detection (0SD) only
+
+Automatic page segmentation with OSD
+
+Automat ic page segmentation, but no 03D, or OCR, (not implemented)
+Fully automatic page segmentation, but no 0SD. (Default
+
+Assume a single column of text of variable sizes
+
+Assume a single uniform block of vertically aligned text
+
+Assume a single uniform block of text
+
+Treat the image as a single text line
+
+Treat the image as a single word
+
+Treat the image as a single word in a circle
+
+Treat the image as a single character
+
+Sparse text. Find as much text as possible in no particular order
+Sparse text with 0SD
+
+Raw line. Treat the image as a single text line
+
+bypassing hacks that are Tesseract-specific
+
+ETE PEE NEY
+
+008 09106 00965.
+0    Legacy engine only
+1    Neural nets LSTM engine only
+2    Legacy + LSTM engines
+3    Default, based on what is available
+
+Single options
+
+Show minimal help message
+
+Show extra help for advanced users
+
+Show page segmentation modes
+
+Show OCR Engine modes
+
+Show version information
+
+list=langs          List available languages for tesseract engine
+—=print-parameters     Print tesseract parameters
+
+   
+
